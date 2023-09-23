@@ -54,8 +54,8 @@ public class SelfHealingProxyInvocationHandler extends BaseHandler implements In
             case "switchTo":
                 TargetLocator switched = (TargetLocator) method.invoke(driver, args);
                 return wrapTarget(switched, loader);
-            case "quit":
-                quit();
+//            case "quit":
+//                quit();
             default:
                 return method.invoke(driver, args);
         }

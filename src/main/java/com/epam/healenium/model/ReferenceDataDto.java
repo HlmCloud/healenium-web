@@ -4,20 +4,20 @@ import com.epam.healenium.treecomparing.Node;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.openqa.selenium.By;
 
 import java.util.List;
 
 @Data
 @Accessors(chain = true)
-public class ReferenceElementsDto {
+public class ReferenceDataDto {
 
-    private String pageContent;
     @ToString.Exclude
-    private List<List<Node>> paths;
-    private List<Locator> unsuccessfulLocators;
+    private List<Node> path;
     @ToString.Exclude
     private String table;
+    private Node tableNode;
     private String tableCssSelector;
-    private String introduction;
-    private String finalResult;
+    private String url;
+
 }

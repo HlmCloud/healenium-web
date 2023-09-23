@@ -30,6 +30,9 @@ public class ImitateProcessor extends BaseProcessor {
 
     @Override
     public void execute() {
+        if (isAIHealingResult()) {
+            return;
+        }
         for (HealingResult healingResult : context.getHealingResults()) {
             Node targetNode = healingResult.getTargetNodes().get(0).getValue();
             Double score = healingResult.getTargetNodes().get(0).getScore();

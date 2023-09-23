@@ -60,6 +60,8 @@ public class GetReferenceElementsProcessor extends BaseProcessor {
         context.setUnsuccessfulLocators(referenceElementsDto.getUnsuccessfulLocators());
         Locator userLocator = restClient.getMapper().byToLocator(context.getBy());
         context.setUserLocator(userLocator);
+        context.setTable(referenceElementsDto.getTable());
+        context.setTableCssSelector(referenceElementsDto.getTableCssSelector());
     }
 
     private boolean isContains(Map<String, String> enableHealingSelectors) {

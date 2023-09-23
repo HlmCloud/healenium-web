@@ -20,6 +20,7 @@ import com.epam.healenium.model.ConfigSelectorDto;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.model.HealedElement;
 import com.epam.healenium.model.Locator;
+import com.epam.healenium.model.ReferenceDataDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.model.SelectorDto;
 import com.epam.healenium.model.SessionContext;
@@ -46,6 +47,7 @@ import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -63,6 +65,8 @@ public class SelfHealingEngine {
     private final WebDriver webDriver;
     private final double scoreCap;
     private final boolean isProxy;
+    private final String introduction;
+    private final String finalMessage;
 
     private RestClient client;
     private NodeService nodeService;
@@ -82,6 +86,8 @@ public class SelfHealingEngine {
         this.config = finalizedConfig;
         this.scoreCap = finalizedConfig.getDouble("score-cap");
         this.isProxy = finalizedConfig.getBoolean("proxy");
+        this.introduction = finalizedConfig.getString("introduction");
+        this.finalMessage = finalizedConfig.getString("finalmessage");
     }
 
     /**
@@ -120,6 +126,19 @@ public class SelfHealingEngine {
         return webElements.stream()
                 .map(e -> nodeService.getNodePath(webDriver, e, context))
                 .collect(Collectors.toList());
+    }
+
+    public List<ReferenceDataDto> getReferenceData(List<WebElement> webElements) {
+        List<ReferenceDataDto> referenceDataList = new ArrayList<>();
+        for (WebElement webElement : webElements) {
+            ReferenceDataDto referenceData = nodeService.getReferenceData(webDriver, webElement);
+            Node tableNode = referenceData.getTableNode();
+            if (tableNode != null) {
+                referenceData.setTableCssSelector(healingService.toLocator(referenceData.getTableNode()).toString());
+            }
+            referenceDataList.add(referenceData);
+        }
+        return referenceDataList;
     }
 
     public void replaceHealedElementLocator(List<Locator> imitatedLocators, Double score, HealedElement healedElement) {

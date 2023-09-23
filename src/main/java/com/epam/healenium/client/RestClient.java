@@ -23,9 +23,12 @@ import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.ReferenceElementsDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.model.SelectorImitatorDto;
+import com.epam.healenium.model.ai.AIRequestDto;
+import com.epam.healenium.model.ai.AIResponseDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.SystemUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,19 +69,25 @@ public class RestClient {
 
     private final String serverUrl;
     private final String imitateUrl;
+    private final String aiUrl;
     private final String sessionKey;
+    private final String schema;
     private ObjectMapper objectMapper;
     private HealeniumMapper mapper;
     private HttpClient serverHttpClient;
     private HttpClient imitateHttpClient;
+    private HttpClient aiHttpClient;
 
     public RestClient(Config config) {
         this.objectMapper = initMapper();
         this.sessionKey = config.getString("sessionKey");
+        this.schema = config.getString("schema");
         this.serverUrl = getHttpUrl(config.getString("hlm.server.url"), "/healenium");
         this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
+        this.aiUrl = getHttpUrl(config.getString("hlm.ai.url"), "/conversation");
         this.serverHttpClient = getHttpClient(serverUrl);
         this.imitateHttpClient = getHttpClient(imitateUrl);
+        this.aiHttpClient = getHttpClient(aiUrl);
         log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}", sessionKey, serverUrl, imitateUrl);
     }
 
@@ -117,6 +126,7 @@ public class RestClient {
             byte[] data = content.getBytes(StandardCharsets.UTF_8);
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
+            request.setHeader("schema", schema);
             request.setContent(Contents.bytes(data));
             log.debug("[Save Elements] Request: {}. Request body: {}", request, requestDto);
             serverHttpClient.execute(request);
@@ -130,6 +140,7 @@ public class RestClient {
         try {
             HttpRequest request = new HttpRequest(HttpMethod.GET, "/elements");
             request.setHeader("Cache-Control", "no-cache");
+            request.setHeader("schema", schema);
             log.debug("[Get Elements] Request: {}", request);
             HttpResponse response = serverHttpClient.execute(request);
 
@@ -175,6 +186,7 @@ public class RestClient {
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setHeader("sessionKey", sessionKey);
             request.setHeader("hostProject", SystemUtils.getHostProjectName());
+            request.setHeader("schema", schema);
             request.setContent(Contents.bytes(data));
             log.debug("[Heal Element] Request: {}. Request body: {}", request, requestDtos);
             serverHttpClient.execute(request);
@@ -198,6 +210,7 @@ public class RestClient {
             HttpRequest request = new HttpRequest(HttpMethod.GET, "");
             request.setHeader("Cache-Control", "no-cache")
                     .setHeader("sessionKey", sessionKey)
+                    .setHeader("schema", schema)
                     .addQueryParameter("locator", requestDto.getLocator())
                     .addQueryParameter("className", requestDto.getClassName())
                     .addQueryParameter("methodName", requestDto.getMethodName())
@@ -230,6 +243,7 @@ public class RestClient {
             byte[] data = content.getBytes(StandardCharsets.UTF_8);
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
+            request.setHeader("schema", schema);
             request.setContent(Contents.bytes(data));
             log.debug("[Selector Imitate] Request: {}. Request body: {}", request, content);
             HttpResponse response = imitateHttpClient.execute(request);
@@ -252,11 +266,34 @@ public class RestClient {
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/report/init/" + sessionId);
             request.setHeader("Content-Length", String.valueOf(0));
             request.setHeader("Content-Type", JSON_UTF_8);
+            request.setHeader("schema", schema);
             request.setContent(Contents.bytes(new byte[0]));
             log.debug("[Init Report] Request: {}", request);
             serverHttpClient.execute(request);
         } catch (Exception e) {
             log.warn("[Init Report] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
         }
+    }
+
+    public AIResponseDto aiHealing(AIRequestDto aiRequestDto) {
+        try {
+            HttpRequest request = new HttpRequest(HttpMethod.POST, "");
+            String content = objectMapper.writeValueAsString(aiRequestDto);
+            byte[] data = content.getBytes(StandardCharsets.UTF_8);
+            request.setHeader("Content-Length", String.valueOf(data.length));
+            request.setHeader("Content-Type", JSON_UTF_8);
+            request.setContent(Contents.bytes(data));
+            log.debug("[AI Heal Element] Request: {}. Request body: {}", request, aiRequestDto);
+            HttpResponse response = aiHttpClient.execute(request);
+            log.debug("[AI Heal Element] Response: {}.", response);
+            if (response.getStatus() == 200) {
+                Supplier<InputStream> result = response.getContent();
+                AIResponseDto aiResponseDto = objectMapper.readValue(result.get(), AIResponseDto.class);
+                return aiResponseDto;
+            }
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        return null;
     }
 }

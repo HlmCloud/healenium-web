@@ -98,6 +98,17 @@ public class HealingService {
         return null;
     }
 
+    public By toLocator(Node node) {
+        for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
+            By locator = construct(node, detailLevel);
+            List<WebElement> elements = driver.findElements(locator);
+            if (elements.size() == 1) {
+                return locator;
+            }
+        }
+        return null;
+    }
+
     /**
      * @param curPathHeightToScores - all PathToNode candidate collection
      * @return list healingCandidateDto for metrics
@@ -121,9 +132,11 @@ public class HealingService {
      * @param detailLevel - final detail Level collection
      * @return target user selector
      */
-    protected By construct(Node node, Set<SelectorComponent> detailLevel) {
+    public By construct(Node node, Set<SelectorComponent> detailLevel) {
         return By.cssSelector(detailLevel.stream()
                 .map(component -> component.createComponent(node))
                 .collect(Collectors.joining()));
     }
+
+
 }

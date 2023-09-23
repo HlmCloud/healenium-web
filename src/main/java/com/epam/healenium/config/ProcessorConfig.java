@@ -1,5 +1,6 @@
 package com.epam.healenium.config;
 
+import com.epam.healenium.processor.AIHealingProcessor;
 import com.epam.healenium.processor.BaseProcessor;
 import com.epam.healenium.processor.FillMetricsProcessor;
 import com.epam.healenium.processor.FindChildElementProcessor;
@@ -26,6 +27,7 @@ public class ProcessorConfig {
         return buildChain(
                 FindElementProcessor.class,
                 GetReferenceElementsProcessor.class,
+                AIHealingProcessor.class,
                 HealingProcessor.class,
                 ImitateProcessor.class,
                 FillMetricsProcessor.class,

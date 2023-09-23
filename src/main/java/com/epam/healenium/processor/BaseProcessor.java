@@ -57,4 +57,8 @@ public abstract class BaseProcessor implements ProcessorHandler {
     }
 
     public abstract void execute();
+
+    public boolean isAIHealingResult() {
+        return context.getAiHealingResult() != null;
+    }
 }

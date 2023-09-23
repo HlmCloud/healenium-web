@@ -48,4 +48,6 @@ public class RequestDto {
     private String sessionId;
     @ToString.Exclude
     private String metrics;
+    @ToString.Exclude
+    private List<ReferenceDataDto> referenceData;
 }

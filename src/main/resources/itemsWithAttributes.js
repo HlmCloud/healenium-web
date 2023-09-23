@@ -8,6 +8,9 @@ while (a != document) {
   var node = {tag:null,id:null,index:null,classes:[],other:{},innerText:""};
   if (a.tagName !== undefined) {
     node.tag = a.tagName.toLowerCase();
+    if (result.table == null && "table" === a.tagName.toLowerCase()) {
+      result.table = a.outerHTML;
+    }
   }
   node.id = a.id;
   node.index = i;

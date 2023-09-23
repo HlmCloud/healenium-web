@@ -3,6 +3,8 @@ package com.epam.healenium.processor;
 import com.epam.healenium.model.ReferenceElementsDto;
 import com.epam.healenium.treecomparing.Node;
 import lombok.extern.slf4j.Slf4j;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
@@ -31,6 +33,9 @@ public class HealingProcessor extends BaseProcessor {
 
     @Override
     public void execute() {
+        if (isAIHealingResult()) {
+            return;
+        }
         String targetPage = engine.pageSource();
         Node destination = engine.parseTree(targetPage);
         context.setPageContent(targetPage);

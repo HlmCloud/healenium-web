@@ -36,5 +36,8 @@ public class Context {
     private Map<WebElement, List<Node>> newElementsToNodes = new HashMap<>();
     private Map<WebElement, List<Node>> existElementsToNodes = new HashMap<>();
 
+    private String table;
+    private String tableCssSelector;
+    private WebElement aiHealingResult;
 
 }

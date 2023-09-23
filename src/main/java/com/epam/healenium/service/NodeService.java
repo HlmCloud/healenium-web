@@ -2,6 +2,7 @@ package com.epam.healenium.service;
 
 import com.epam.healenium.FieldName;
 import com.epam.healenium.model.Context;
+import com.epam.healenium.model.ReferenceDataDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.NodeBuilder;
 import com.epam.healenium.utils.ResourceReader;
@@ -59,6 +60,34 @@ public class NodeService {
             log.error("Failed to get element node path!", ex);
         }
         return path;
+    }
+
+    public ReferenceDataDto getReferenceData(WebDriver driver, WebElement webElement) {
+        JavascriptExecutor executor = (JavascriptExecutor) driver;
+        String data = (String) executor.executeScript(SCRIPT, webElement);
+        List<Node> path = new LinkedList<>();
+        ReferenceDataDto referenceDto = new ReferenceDataDto();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode treeNode = mapper.readTree(data);
+            String table = treeNode.get("table").textValue();
+            referenceDto.setUrl(treeNode.get("url").textValue());
+            referenceDto.setTable(table);
+            JsonNode items = treeNode.get("items");
+            if (items.isArray()) {
+                for (final JsonNode jsonNode : items) {
+                    Node node = toNode(mapper.treeAsTokens(jsonNode));
+                    if ("table".equals(node.getTag())) {
+                        referenceDto.setTableNode(node);
+                    }
+                    path.add(node);
+                }
+            }
+        } catch (Exception ex) {
+            log.error("Failed to get element node path!", ex);
+        }
+        referenceDto.setPath(path);
+        return referenceDto;
     }
 
     /**
